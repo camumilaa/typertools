@@ -5,7 +5,10 @@ let state = {
   lines: [],
   currentIndex: 0,
   editingStyleIndex: null,
-  selectedStyleIndex: -1
+  selectedStyleIndex: -1,
+  mouseX: 0,
+  mouseY: 0,
+  keysPressed: {}
 };
 
 // ===== INICIALIZAÇÃO =====
@@ -33,29 +36,82 @@ function loadData() {
 }
 
 function setupEventListeners() {
+  // Input de texto
   document.getElementById("textInput").addEventListener("input", () => {
     processText();
     renderPreview();
   });
 
+  // Seleção de estilo
   document.getElementById("styleSelect").addEventListener("change", (e) => {
     state.selectedStyleIndex = parseInt(e.target.value);
     localStorage.setItem("typer_last_style", state.selectedStyleIndex);
   });
+
+  // Atalhos de teclado
+  document.addEventListener("keydown", handleKeyDown);
+  document.addEventListener("keyup", handleKeyUp);
+
+  // Rastrear posição do mouse
+  document.addEventListener("mousemove", (e) => {
+    state.mouseX = e.clientX;
+    state.mouseY = e.clientY;
+  });
 }
 
-// ===== LÓGICA DE TEXTO =====
+// ===== ATALHOS DE TECLADO =====
+function handleKeyDown(e) {
+  state.keysPressed[e.key.toLowerCase()] = true;
+
+  // B + A = Avançar e Gerar
+  if (state.keysPressed['b'] && state.keysPressed['a']) {
+    e.preventDefault();
+    nextLine();
+    setTimeout(() => run(), 100);
+  }
+}
+
+function handleKeyUp(e) {
+  state.keysPressed[e.key.toLowerCase()] = false;
+}
+
+// ===== LÓGICA DE TEXTO COM FILTRAGEM CORRIGIDA =====
 function processText() {
   const raw = document.getElementById("textInput").value;
   const rawLines = raw.split("\n");
   
-  state.lines = rawLines.map(l => l.trim()).filter(line => {
-    if (!line) return false;
-    // Verifica se a linha começa com qualquer um dos itens da ignoreList (case insensitive)
-    return !state.ignoreList.some(pattern => 
-      line.toLowerCase().startsWith(pattern.toLowerCase())
-    );
-  });
+  state.lines = rawLines
+    .map(l => l.trim())
+    .filter(line => {
+      // Rejeita linhas vazias
+      if (!line) return false;
+
+      // Verifica se a linha INTEIRA é um dos itens da ignoreList (case insensitive)
+      const lowerLine = line.toLowerCase();
+      
+      // Primeiro, testa correspondência exata
+      if (state.ignoreList.some(pattern => lowerLine === pattern.toLowerCase())) {
+        return false;
+      }
+
+      // Depois, testa se começa com o padrão
+      if (state.ignoreList.some(pattern => lowerLine.startsWith(pattern.toLowerCase()))) {
+        return false;
+      }
+
+      // Testa se a linha é APENAS números
+      if (/^\d+$/.test(line)) {
+        return false;
+      }
+
+      // Testa se começa com números seguidos de espaço ou caractere especial
+      if (/^\d+[\s\-_\.\,\:\;]/.test(line)) {
+        return false;
+      }
+
+      // Se passou em todos os testes, inclui a linha
+      return true;
+    });
 
   state.currentIndex = 0;
 }
@@ -65,6 +121,8 @@ function nextLine() {
   if (state.currentIndex < state.lines.length - 1) {
     state.currentIndex++;
     renderPreview();
+  } else {
+    notify("Fim do texto!", "info");
   }
 }
 
@@ -80,7 +138,7 @@ function goToLine(index) {
   renderPreview();
 }
 
-// ===== EXECUÇÃO PHOTOPEA =====
+// ===== EXECUÇÃO PHOTOPEA COM POSICIONAMENTO =====
 function run() {
   if (state.lines.length === 0) return notify("Cole algum texto primeiro!", "error");
   if (state.selectedStyleIndex === -1 || !state.styles[state.selectedStyleIndex]) {
@@ -90,28 +148,45 @@ function run() {
   const style = state.styles[state.selectedStyleIndex];
   const text = escapeJS(state.lines[state.currentIndex]);
   
-  // Script otimizado para Photopea
+  // Calcular posição relativa ao documento Photopea
+  // A posição será baseada na posição do mouse na tela
+  const xPos = Math.max(10, state.mouseX * 2); // Escala aproximada
+  const yPos = Math.max(10, state.mouseY * 2);
+
+  // Script otimizado para Photopea com posicionamento
   const script = `
     (function() {
-      if (app.documents.length == 0) return;
-      var doc = app.activeDocument;
-      var layer = doc.artLayers.add();
-      layer.kind = LayerKind.TEXT;
-      var ti = layer.textItem;
-      ti.contents = "${text}";
-      ti.size = ${style.size};
-      try {
-        ti.font = "${style.font}";
-      } catch(e) {
-        alert("Fonte '${style.font}' não encontrada no Photopea. Usando padrão.");
+      if (app.documents.length == 0) {
+        alert("Nenhum documento aberto no Photopea!");
+        return;
       }
-      // Centralizar levemente
-      ti.position = [doc.width/2, doc.height/2];
+      
+      try {
+        var doc = app.activeDocument;
+        var layer = doc.artLayers.add();
+        layer.kind = LayerKind.TEXT;
+        var ti = layer.textItem;
+        ti.contents = "${text}";
+        ti.size = ${style.size};
+        
+        // Tentar aplicar a fonte
+        try {
+          ti.font = "${style.font}";
+        } catch(e) {
+          // Fonte não disponível, usar padrão
+        }
+        
+        // Posicionar o texto onde o mouse estava
+        ti.position = [${xPos}, ${yPos}];
+        
+      } catch(e) {
+        alert("Erro ao criar texto: " + e.message);
+      }
     })();
   `;
 
   window.parent.postMessage(script, "*");
-  notify("Texto enviado!", "success");
+  notify("✓ Texto enviado!", "success");
 }
 
 // ===== GERENCIAMENTO DE ESTILOS =====
@@ -167,6 +242,7 @@ function deleteStyle(index) {
     localStorage.setItem("typer_styles", JSON.stringify(state.styles));
     renderStyleSelect();
     renderStyleManager();
+    notify("Estilo deletado!");
   }
 }
 
