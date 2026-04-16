@@ -10,7 +10,7 @@ body {
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:8px;
+  margin-bottom:6px;
   font-size:14px;
 }
 
@@ -71,6 +71,16 @@ button:hover {
   border-left:3px solid #2196f3;
 }
 
+/* select */
+select {
+  width:100%;
+  margin-bottom:6px;
+  background:#2a2a2a;
+  color:white;
+  border:none;
+  padding:5px;
+}
+
 /* modal */
 .modal {
   position:fixed;
@@ -88,6 +98,15 @@ button:hover {
   background:#1e1e1e;
   padding:10px;
   width:90%;
+}
+
+input {
+  width:100%;
+  margin:4px 0;
+  padding:5px;
+  background:#2a2a2a;
+  border:none;
+  color:white;
 }
 
 .hidden {
