@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+</head>
+
+<body style="background:#1e1e1e;color:white;font-family:Arial;padding:10px;">
+
+<h3>TyperTools</h3>
+
+<textarea id="text" style="width:100%;height:120px;" placeholder="Uma fala por linha"></textarea>
+
+<select id="style">
+  <option value="fala">Fala</option>
+  <option value="grito">Grito</option>
+</select>
+
+<button onclick="run()">Gerar</button>
+
+<script>
+function run(){
+
+  let raw = document.getElementById("text").value;
+  let style = document.getElementById("style").value;
+
+  let lines = raw.split("\n").filter(l => l.trim() !== "");
+
+  let script = `
+  var lines = ${JSON.stringify(lines)};
+  var doc = app.activeDocument;
+  var y = 100;
+
+  for (var i = 0; i < lines.length; i++) {
+
+    var layer = doc.artLayers.add();
+    layer.kind = LayerKind.TEXT;
+
+    layer.textItem.contents = lines[i];
+    layer.textItem.position = [100, y];
+    y += 80;
+
+    if ("${style}" === "fala") {
+      layer.textItem.size = 32;
+    }
+
+    if ("${style}" === "grito") {
+      layer.textItem.size = 48;
+    }
+  }
+  `;
+
+  window.parent.postMessage(script, "*");
+}
+</script>
+
+</body>
+</html>
