@@ -8,6 +8,7 @@
   --text-dim: #a0a0a0;
   --success: #4caf50;
   --error: #f44336;
+  --info: #2196f3;
   --border: #303446;
   --radius: 8px;
   --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -37,6 +38,8 @@ header {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--border);
 }
 
 .logo {
@@ -73,11 +76,16 @@ textarea {
   font-size: 13px;
   resize: none;
   transition: border-color 0.3s;
+  font-family: 'Courier New', monospace;
 }
 
 textarea:focus {
   outline: none;
   border-color: var(--accent);
+}
+
+textarea::placeholder {
+  color: var(--text-dim);
 }
 
 /* ===== CONTROLS ===== */
@@ -89,12 +97,24 @@ textarea:focus {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  border: 1px solid var(--border);
 }
 
 .nav-row {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.counter {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(126, 87, 194, 0.1);
+  padding: 6px;
+  border-radius: var(--radius);
 }
 
 .btn-nav {
@@ -105,18 +125,12 @@ textarea:focus {
   border-radius: var(--radius);
   cursor: pointer;
   transition: all 0.2s;
+  font-size: 14px;
 }
 
 .btn-nav:hover {
   background: var(--border);
-}
-
-#counter {
-  flex: 1;
-  text-align: center;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-dim);
+  border-color: var(--accent);
 }
 
 .btn-main {
@@ -130,10 +144,15 @@ textarea:focus {
   transition: background 0.3s;
   text-transform: uppercase;
   letter-spacing: 1px;
+  font-size: 13px;
 }
 
 .btn-main:hover {
   background: var(--accent-hover);
+}
+
+.btn-main:active {
+  transform: scale(0.98);
 }
 
 select {
@@ -144,6 +163,36 @@ select {
   padding: 8px;
   border-radius: var(--radius);
   cursor: pointer;
+  font-size: 13px;
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* ===== SHORTCUTS INFO ===== */
+.shortcuts-info {
+  background: rgba(33, 150, 243, 0.1);
+  border-left: 3px solid var(--info);
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.shortcuts-info p {
+  margin: 4px 0;
+}
+
+.shortcuts-info kbd {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--accent);
 }
 
 /* ===== PREVIEW ===== */
@@ -164,7 +213,7 @@ select {
   display: flex;
   gap: 10px;
   font-size: 13px;
-  transition: background 0.2s;
+  transition: all 0.2s;
   border-left: 3px solid transparent;
 }
 
@@ -173,14 +222,21 @@ select {
 }
 
 .preview-item.active {
-  background: rgba(126, 87, 194, 0.15);
+  background: rgba(126, 87, 194, 0.2);
   border-left-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
 }
 
 .line-num {
   color: var(--text-dim);
   font-weight: 700;
-  min-width: 20px;
+  min-width: 25px;
+}
+
+.line-text {
+  word-break: break-word;
+  flex: 1;
 }
 
 .empty-state {
@@ -204,17 +260,24 @@ select {
   align-items: center;
   z-index: 100;
   padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modal-content {
   background: var(--bg-card);
   width: 100%;
-  max-width: 360px;
+  max-width: 380px;
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 20px 40px rgba(0,0,0,0.4);
   max-height: 90vh;
   overflow-y: auto;
+  border: 1px solid var(--border);
 }
 
 .modal-header {
@@ -227,6 +290,7 @@ select {
 .modal-header h3 {
   margin: 0;
   font-size: 16px;
+  color: var(--accent);
 }
 
 .form-group {
@@ -239,6 +303,7 @@ select {
   color: var(--text-dim);
   margin-bottom: 4px;
   text-transform: uppercase;
+  font-weight: 600;
 }
 
 input {
@@ -248,6 +313,17 @@ input {
   color: var(--text-main);
   padding: 10px;
   border-radius: var(--radius);
+  font-size: 13px;
+  transition: border-color 0.2s;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+input::placeholder {
+  color: var(--text-dim);
 }
 
 .style-list {
@@ -264,6 +340,7 @@ input {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border: 1px solid var(--border);
 }
 
 .style-info {
@@ -271,9 +348,19 @@ input {
   flex-direction: column;
 }
 
+.style-info strong {
+  color: var(--text-main);
+  font-size: 13px;
+}
+
 .style-info span {
   font-size: 11px;
   color: var(--text-dim);
+}
+
+.style-actions {
+  display: flex;
+  gap: 4px;
 }
 
 .btn-icon {
@@ -281,15 +368,20 @@ input {
   border: none;
   cursor: pointer;
   font-size: 16px;
-  padding: 4px;
+  padding: 4px 8px;
+  transition: transform 0.2s;
+}
+
+.btn-icon:hover {
+  transform: scale(1.2);
 }
 
 .btn-danger {
-  filter: grayscale(1);
+  filter: opacity(0.6);
 }
 
 .btn-danger:hover {
-  filter: grayscale(0);
+  filter: opacity(1);
 }
 
 /* ===== TOAST ===== */
@@ -300,37 +392,73 @@ input {
   transform: translateX(-50%) translateY(100px);
   background: var(--accent);
   color: white;
-  padding: 10px 20px;
+  padding: 12px 20px;
   border-radius: 20px;
   font-size: 13px;
   font-weight: 600;
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .toast.show {
   transform: translateX(-50%) translateY(0);
 }
 
+.toast.success {
+  background: var(--success);
+}
+
 .toast.error {
   background: var(--error);
+}
+
+.toast.info {
+  background: var(--info);
 }
 
 .hidden {
   display: none !important;
 }
 
-/* Custom Scrollbar */
+/* ===== CUSTOM SCROLLBAR ===== */
 ::-webkit-scrollbar {
   width: 4px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 10px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent);
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 480px) {
+  body {
+    padding: 8px;
+  }
+
+  .logo {
+    font-size: 14px;
+  }
+
+  textarea {
+    height: 80px;
+    font-size: 12px;
+  }
+
+  .modal-content {
+    max-width: 95%;
+  }
+
+  .shortcuts-info {
+    font-size: 10px;
+  }
 }
