@@ -3,18 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TyperTools Master</title>
+  <title>TyperTools Global</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
   <header>
-    <div class="logo">TYPERTOOLS MASTER</div>
+    <div class="logo">TYPERTOOLS GLOBAL</div>
     <div class="header-actions">
-      <button onclick="openStyleModal()" class="btn-nav" title="Gerenciar Estilos">🎨</button>
-      <button onclick="openFontsModal()" class="btn-nav" title="Catálogo de Fontes">📚</button>
-      <button onclick="openConfigModal()" class="btn-nav" title="Configurar Filtros">⚙️</button>
+      <select id="langSelect" class="lang-select">
+        <option value="pt">🇧🇷 PT</option>
+        <option value="en">🇺🇸 EN</option>
+      </select>
+      <button onclick="openStyleModal()" class="btn-nav" title="Estilos">🎨</button>
+      <button onclick="openFontsModal()" class="btn-nav" title="Fontes">📚</button>
+      <button onclick="openConfigModal()" class="btn-nav" title="Filtros">⚙️</button>
     </div>
   </header>
 
@@ -27,17 +31,16 @@
       </select>
 
       <div class="nav-row">
-        <button onclick="prevLine()" class="btn-nav" title="Voltar (⬅️)">⬅️</button>
+        <button onclick="prevLine()" class="btn-nav" title="Voltar">⬅️</button>
         <div id="counter" class="counter">0 / 0</div>
-        <button onclick="nextLine()" class="btn-nav" title="Próximo (➡️)">➡️</button>
+        <button onclick="nextLine()" class="btn-nav" title="Próximo">➡️</button>
       </div>
 
       <button onclick="run()" class="btn-main">Gerar Texto</button>
 
       <div class="shortcuts-info">
-        <p>⌨️ <strong>B + A</strong>: Avança e gera automaticamente</p>
-        <p>⌨️ <strong>Ctrl + Enter</strong>: Gera texto</p>
-        <p>🖱️ <strong>Posição</strong>: Onde o mouse está</p>
+        <p id="shortcutInfo">⌨️ <strong>B + A</strong>: Avança e gera automaticamente</p>
+        <p id="mouseInfo">鼠标 <strong>Posição</strong>: Onde o mouse está</p>
       </div>
     </div>
 
@@ -50,17 +53,17 @@
   <div id="styleModal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Gerenciar Estilos</h3>
+        <h3 id="styleModalTitle">Gerenciar Estilos</h3>
         <button onclick="closeStyleModal()" class="btn-icon">✕</button>
       </div>
       
       <div class="form-group">
-        <label>Nome do Estilo</label>
+        <label id="styleNameLabel">Nome do Estilo</label>
         <input type="text" id="styleName" placeholder="Ex: Fala Normal">
       </div>
       
       <div class="form-group">
-        <label>Fonte (PostScript)</label>
+        <label id="styleFontLabel">Fonte (PostScript)</label>
         <div style="display: flex; gap: 8px;">
           <input type="text" id="styleFont" placeholder="Ex: ArialMT" style="flex: 1;">
           <button onclick="openFontsModal()" class="btn-nav" style="flex: 0;">📚</button>
@@ -68,11 +71,11 @@
       </div>
       
       <div class="form-group">
-        <label>Tamanho (px)</label>
+        <label id="styleSizeLabel">Tamanho (px)</label>
         <input type="number" id="styleSize" value="32">
       </div>
 
-      <button onclick="saveStyle()" class="btn-main" style="width: 100%;">Salvar Estilo</button>
+      <button onclick="saveStyle()" id="saveStyleBtn" class="btn-main" style="width: 100%;">Salvar Estilo</button>
 
       <div id="styleList" class="style-list"></div>
     </div>
@@ -82,10 +85,10 @@
   <div id="fontsModal" class="modal hidden">
     <div class="modal-content fonts-modal">
       <div class="modal-header">
-        <h3>Catálogo de Fontes</h3>
+        <h3 id="fontsModalTitle">Catálogo de Fontes</h3>
         <button onclick="closeFontsModal()" class="btn-icon">✕</button>
       </div>
-      <p style="font-size: 11px; color: var(--text-dim); margin: 0 0 12px 0;">
+      <p id="fontsModalDesc" style="font-size: 11px; color: var(--text-dim); margin: 0 0 12px 0;">
         Clique em uma fonte para selecioná-la automaticamente:
       </p>
       <div id="fontsList" class="fonts-list"></div>
@@ -96,14 +99,14 @@
   <div id="configModal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Configurar Filtros</h3>
+        <h3 id="configModalTitle">Configurar Filtros</h3>
         <button onclick="closeConfigModal()" class="btn-icon">✕</button>
       </div>
-      <p style="font-size: 11px; color: var(--text-dim); margin-bottom: 10px;">
+      <p id="configModalDesc" style="font-size: 11px; color: var(--text-dim); margin-bottom: 10px;">
         Linhas que começam com estes termos (ou são apenas números) serão ignoradas:
       </p>
       <textarea id="ignoreInput" style="height: 150px; font-family: monospace;"></textarea>
-      <button onclick="saveConfig()" class="btn-main" style="width: 100%; margin-top: 12px;">Salvar Filtros</button>
+      <button onclick="saveConfig()" id="saveFiltersBtn" class="btn-main" style="width: 100%; margin-top: 12px;">Salvar Filtros</button>
     </div>
   </div>
 
