@@ -7,21 +7,31 @@
 
 <body>
 
-<h2>TyperTools</h2>
+<div id="topbar">
+  <span>TyperTools</span>
+  <button onclick="toggleConfig()">⚙️</button>
+</div>
 
 <textarea id="text" placeholder="Cole o texto aqui..."></textarea>
 
 <div id="controls">
   <button onclick="nextLine()">Próximo</button>
   <button onclick="run()">Gerar</button>
-  <button onclick="toggleConfig()">⚙️</button>
 </div>
 
 <div id="preview"></div>
 
-<div id="config" class="hidden">
-  <h3>Ignorar linhas contendo:</h3>
-  <textarea id="ignore"></textarea>
+<!-- CONFIG MODAL -->
+<div id="configModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>Configurações</h3>
+
+    <p>Ignorar linhas contendo:</p>
+    <textarea id="ignore"></textarea>
+
+    <button onclick="saveConfig()">Salvar</button>
+    <button onclick="toggleConfig()">Fechar</button>
+  </div>
 </div>
 
 <script src="app.js"></script>
