@@ -39,19 +39,27 @@
 <!-- STYLE -->
 <div id="styleModal" class="modal hidden">
   <div class="modal-content">
-    <h3>Novo Estilo</h3>
 
-    <input id="styleName" placeholder="Nome do estilo">
+    <h3>Estilos</h3>
+
+    <!-- CRIAR / EDITAR -->
+    <input id="styleName" placeholder="Nome do estilo (ex: Fala, Grito)">
 
     <input id="fontFamily" placeholder="Fonte (ex: ArialMT, WildWords)">
 
-    <input id="fontSize" type="number" value="32">
+    <input id="fontSize" type="number" value="32" placeholder="Tamanho da fonte">
 
-    <button onclick="saveStyle()">Salvar Estilo</button>
+    <button onclick="saveStyle()">Salvar / Atualizar</button>
+
+    <hr>
+
+    <!-- LISTA DE ESTILOS -->
+    <div id="styleManager"></div>
+
     <button onclick="toggleStyle()">Fechar</button>
+
   </div>
 </div>
-
 <script src="app.js"></script>
 </body>
 </html>
