@@ -13,38 +13,96 @@
 <select id="style">
   <option value="fala">Fala</option>
   <option value="grito">Grito</option>
+  <option value="narracao">Narração</option>
 </select>
+
+<select id="font">
+  <option value="ArialMT">Arial</option>
+  <option value="Arial-BoldMT">Arial Bold</option>
+  <option value="TimesNewRomanPSMT">Times</option>
+</select>
+
+<input id="size" type="number" value="32" placeholder="Tamanho">
+
+<input id="spacing" type="number" value="70" placeholder="Espaçamento">
 
 <button onclick="run()">Gerar</button>
 
 <script>
+function quebrarLinha(texto, max){
+  let palavras = texto.split(" ");
+  let linhas = [];
+  let atual = "";
+
+  for(let i = 0; i < palavras.length; i++){
+    if((atual + palavras[i]).length > max){
+      linhas.push(atual);
+      atual = "";
+    }
+    atual += palavras[i] + " ";
+  }
+
+  linhas.push(atual);
+  return linhas.join("\n");
+}
+
 function run(){
 
   let raw = document.getElementById("text").value;
   let style = document.getElementById("style").value;
+  let font = document.getElementById("font").value;
+  let size = document.getElementById("size").value;
+  let spacing = document.getElementById("spacing").value;
 
   let lines = raw.split("\n").filter(l => l.trim() !== "");
 
   let script = `
   var lines = ${JSON.stringify(lines)};
-  var doc = app.activeDocument;
-  var y = 100;
+  var y = 150;
+
+  var grupo = app.activeDocument.layerSets.add();
+  grupo.name = "TyperTools";
+
+  function quebrarLinha(texto, max){
+    var palavras = texto.split(" ");
+    var linhas = [];
+    var atual = "";
+
+    for (var i = 0; i < palavras.length; i++) {
+      if ((atual + palavras[i]).length > max) {
+        linhas.push(atual);
+        atual = "";
+      }
+      atual += palavras[i] + " ";
+    }
+
+    linhas.push(atual);
+    return linhas.join("\\n");
+  }
 
   for (var i = 0; i < lines.length; i++) {
 
-    var layer = doc.artLayers.add();
+    var texto = quebrarLinha(lines[i], 25);
+
+    var layer = grupo.artLayers.add();
     layer.kind = LayerKind.TEXT;
 
-    layer.textItem.contents = lines[i];
-    layer.textItem.position = [100, y];
-    y += 80;
+    layer.name = "fala_" + (i+1);
 
-    if ("${style}" === "fala") {
-      layer.textItem.size = 32;
-    }
+    layer.textItem.contents = texto;
+    layer.textItem.position = [200, y];
+
+    y += ${spacing};
+
+    layer.textItem.font = "${font}";
+    layer.textItem.size = ${size};
 
     if ("${style}" === "grito") {
-      layer.textItem.size = 48;
+      layer.textItem.size = ${size} * 1.5;
+    }
+
+    if ("${style}" === "narracao") {
+      layer.textItem.size = ${size} * 0.9;
     }
   }
   `;
