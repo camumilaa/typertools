@@ -8,7 +8,7 @@ let state = {
   selectedStyleIndex: -1,
   mouseX: 0,
   mouseY: 0,
-  keysPressed: {}
+  keysPressed: new Set()
 };
 
 // ===== INICIALIZAÇÃO =====
@@ -48,31 +48,52 @@ function setupEventListeners() {
     localStorage.setItem("typer_last_style", state.selectedStyleIndex);
   });
 
-  // Atalhos de teclado
-  document.addEventListener("keydown", handleKeyDown);
-  document.addEventListener("keyup", handleKeyUp);
+  // Atalhos de teclado - Usando keydown com múltiplas teclas
+  document.addEventListener("keydown", (e) => {
+    const key = e.key.toLowerCase();
+    state.keysPressed.add(key);
+
+    // B + A = Avançar e Gerar
+    if (state.keysPressed.has('b') && state.keysPressed.has('a')) {
+      e.preventDefault();
+      nextLine();
+      setTimeout(() => run(), 50);
+      state.keysPressed.clear(); // Limpar para evitar repetição
+    }
+
+    // Ctrl/Cmd + Enter = Gerar
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      run();
+    }
+
+    // Setas para navegação
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      nextLine();
+    }
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      prevLine();
+    }
+  });
+
+  document.addEventListener("keyup", (e) => {
+    state.keysPressed.delete(e.key.toLowerCase());
+  });
 
   // Rastrear posição do mouse
   document.addEventListener("mousemove", (e) => {
     state.mouseX = e.clientX;
     state.mouseY = e.clientY;
   });
-}
 
-// ===== ATALHOS DE TECLADO =====
-function handleKeyDown(e) {
-  state.keysPressed[e.key.toLowerCase()] = true;
-
-  // B + A = Avançar e Gerar
-  if (state.keysPressed['b'] && state.keysPressed['a']) {
-    e.preventDefault();
-    nextLine();
-    setTimeout(() => run(), 100);
-  }
-}
-
-function handleKeyUp(e) {
-  state.keysPressed[e.key.toLowerCase()] = false;
+  // Fechar modais ao clicar fora
+  document.addEventListener("click", (e) => {
+    if (e.target.id === "styleModal") closeStyleModal();
+    if (e.target.id === "configModal") closeConfigModal();
+    if (e.target.id === "fontsModal") closeFontsModal();
+  });
 }
 
 // ===== LÓGICA DE TEXTO COM FILTRAGEM CORRIGIDA =====
@@ -86,25 +107,24 @@ function processText() {
       // Rejeita linhas vazias
       if (!line) return false;
 
-      // Verifica se a linha INTEIRA é um dos itens da ignoreList (case insensitive)
       const lowerLine = line.toLowerCase();
       
-      // Primeiro, testa correspondência exata
+      // Teste 1: Correspondência exata com ignoreList
       if (state.ignoreList.some(pattern => lowerLine === pattern.toLowerCase())) {
         return false;
       }
 
-      // Depois, testa se começa com o padrão
+      // Teste 2: Começa com padrão da ignoreList
       if (state.ignoreList.some(pattern => lowerLine.startsWith(pattern.toLowerCase()))) {
         return false;
       }
 
-      // Testa se a linha é APENAS números
+      // Teste 3: Linha é apenas números
       if (/^\d+$/.test(line)) {
         return false;
       }
 
-      // Testa se começa com números seguidos de espaço ou caractere especial
+      // Teste 4: Começa com números seguidos de pontuação/espaço
       if (/^\d+[\s\-_\.\,\:\;]/.test(line)) {
         return false;
       }
@@ -149,8 +169,7 @@ function run() {
   const text = escapeJS(state.lines[state.currentIndex]);
   
   // Calcular posição relativa ao documento Photopea
-  // A posição será baseada na posição do mouse na tela
-  const xPos = Math.max(10, state.mouseX * 2); // Escala aproximada
+  const xPos = Math.max(10, state.mouseX * 2);
   const yPos = Math.max(10, state.mouseY * 2);
 
   // Script otimizado para Photopea com posicionamento
@@ -169,14 +188,12 @@ function run() {
         ti.contents = "${text}";
         ti.size = ${style.size};
         
-        // Tentar aplicar a fonte
         try {
           ti.font = "${style.font}";
         } catch(e) {
-          // Fonte não disponível, usar padrão
+          // Fonte não disponível
         }
         
-        // Posicionar o texto onde o mouse estava
         ti.position = [${xPos}, ${yPos}];
         
       } catch(e) {
@@ -246,6 +263,53 @@ function deleteStyle(index) {
   }
 }
 
+// ===== MODAL DE FONTES =====
+function openFontsModal() {
+  document.getElementById("fontsModal").classList.remove("hidden");
+  renderFontsList();
+}
+
+function closeFontsModal() {
+  document.getElementById("fontsModal").classList.add("hidden");
+}
+
+function selectFont(postscript) {
+  document.getElementById("styleFont").value = postscript;
+  closeFontsModal();
+  notify("Fonte selecionada!");
+}
+
+function renderFontsList() {
+  const container = document.getElementById("fontsList");
+  container.innerHTML = "";
+
+  const grouped = getFontsByCategory();
+
+  Object.keys(grouped).sort().forEach(category => {
+    const categoryDiv = document.createElement("div");
+    categoryDiv.className = "font-category";
+    
+    const categoryTitle = document.createElement("h4");
+    categoryTitle.textContent = category;
+    categoryDiv.appendChild(categoryTitle);
+
+    grouped[category].forEach(font => {
+      const fontItem = document.createElement("div");
+      fontItem.className = "font-item";
+      fontItem.innerHTML = `
+        <div class="font-info">
+          <strong>${font.name}</strong>
+          <code>${font.postscript}</code>
+        </div>
+        <button onclick="selectFont('${font.postscript}')" class="btn-select">Usar</button>
+      `;
+      categoryDiv.appendChild(fontItem);
+    });
+
+    container.appendChild(categoryDiv);
+  });
+}
+
 // ===== CONFIGURAÇÕES =====
 function openConfigModal() {
   document.getElementById("configModal").classList.remove("hidden");
@@ -305,7 +369,6 @@ function renderPreview() {
     }
   });
 
-  // Atualizar contador
   document.getElementById("counter").textContent = `${state.currentIndex + 1} / ${state.lines.length}`;
 }
 
