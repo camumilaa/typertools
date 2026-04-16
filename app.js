@@ -20,18 +20,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function loadData() {
   try {
+    // Carregar Estilos
     const savedStyles = localStorage.getItem("typer_styles");
     state.styles = savedStyles ? JSON.parse(savedStyles) : [];
     
+    // Carregar Filtros
     const savedIgnore = localStorage.getItem("typer_ignore");
     if (savedIgnore) state.ignoreList = JSON.parse(savedIgnore);
     
+    // Carregar Último Estilo Selecionado
     const savedLastStyle = localStorage.getItem("typer_last_style");
-    if (savedLastStyle !== null) state.selectedStyleIndex = parseInt(savedLastStyle);
+    if (savedLastStyle !== null) {
+      const idx = parseInt(savedLastStyle);
+      // Validar se o índice ainda existe na lista de estilos
+      if (idx >= 0 && idx < state.styles.length) {
+        state.selectedStyleIndex = idx;
+      } else {
+        state.selectedStyleIndex = state.styles.length > 0 ? 0 : -1;
+      }
+    }
 
     document.getElementById("ignoreInput").value = state.ignoreList.join("\n");
   } catch (e) {
     console.error("Erro ao carregar dados:", e);
+    state.styles = [];
+    state.selectedStyleIndex = -1;
   }
 }
 
@@ -42,13 +55,13 @@ function setupEventListeners() {
     renderPreview();
   });
 
-  // Seleção de estilo
+  // Seleção de estilo no dropdown
   document.getElementById("styleSelect").addEventListener("change", (e) => {
     state.selectedStyleIndex = parseInt(e.target.value);
     localStorage.setItem("typer_last_style", state.selectedStyleIndex);
   });
 
-  // Atalhos de teclado - Usando keydown com múltiplas teclas
+  // Atalhos de teclado
   document.addEventListener("keydown", (e) => {
     const key = e.key.toLowerCase();
     state.keysPressed.add(key);
@@ -58,7 +71,7 @@ function setupEventListeners() {
       e.preventDefault();
       nextLine();
       setTimeout(() => run(), 50);
-      state.keysPressed.clear(); // Limpar para evitar repetição
+      state.keysPressed.clear();
     }
 
     // Ctrl/Cmd + Enter = Gerar
@@ -96,7 +109,7 @@ function setupEventListeners() {
   });
 }
 
-// ===== LÓGICA DE TEXTO COM FILTRAGEM CORRIGIDA =====
+// ===== LÓGICA DE TEXTO =====
 function processText() {
   const raw = document.getElementById("textInput").value;
   const rawLines = raw.split("\n");
@@ -104,32 +117,14 @@ function processText() {
   state.lines = rawLines
     .map(l => l.trim())
     .filter(line => {
-      // Rejeita linhas vazias
       if (!line) return false;
-
       const lowerLine = line.toLowerCase();
       
-      // Teste 1: Correspondência exata com ignoreList
-      if (state.ignoreList.some(pattern => lowerLine === pattern.toLowerCase())) {
-        return false;
-      }
+      if (state.ignoreList.some(pattern => lowerLine === pattern.toLowerCase())) return false;
+      if (state.ignoreList.some(pattern => lowerLine.startsWith(pattern.toLowerCase()))) return false;
+      if (/^\d+$/.test(line)) return false;
+      if (/^\d+[\s\-_\.\,\:\;]/.test(line)) return false;
 
-      // Teste 2: Começa com padrão da ignoreList
-      if (state.ignoreList.some(pattern => lowerLine.startsWith(pattern.toLowerCase()))) {
-        return false;
-      }
-
-      // Teste 3: Linha é apenas números
-      if (/^\d+$/.test(line)) {
-        return false;
-      }
-
-      // Teste 4: Começa com números seguidos de pontuação/espaço
-      if (/^\d+[\s\-_\.\,\:\;]/.test(line)) {
-        return false;
-      }
-
-      // Se passou em todos os testes, inclui a linha
       return true;
     });
 
@@ -158,7 +153,7 @@ function goToLine(index) {
   renderPreview();
 }
 
-// ===== EXECUÇÃO PHOTOPEA COM POSICIONAMENTO =====
+// ===== EXECUÇÃO PHOTOPEA =====
 function run() {
   if (state.lines.length === 0) return notify("Cole algum texto primeiro!", "error");
   if (state.selectedStyleIndex === -1 || !state.styles[state.selectedStyleIndex]) {
@@ -168,11 +163,9 @@ function run() {
   const style = state.styles[state.selectedStyleIndex];
   const text = escapeJS(state.lines[state.currentIndex]);
   
-  // Calcular posição relativa ao documento Photopea
   const xPos = Math.max(10, state.mouseX * 2);
   const yPos = Math.max(10, state.mouseY * 2);
 
-  // Script otimizado para Photopea com posicionamento
   const script = `
     (function() {
       if (app.documents.length == 0) {
@@ -235,6 +228,7 @@ function saveStyle() {
     state.selectedStyleIndex = state.styles.length - 1;
   }
 
+  // Salvar no localStorage
   localStorage.setItem("typer_styles", JSON.stringify(state.styles));
   localStorage.setItem("typer_last_style", state.selectedStyleIndex);
   
@@ -255,8 +249,17 @@ function editStyle(index) {
 function deleteStyle(index) {
   if (confirm("Excluir este estilo?")) {
     state.styles.splice(index, 1);
-    if (state.selectedStyleIndex >= state.styles.length) state.selectedStyleIndex = state.styles.length - 1;
+    
+    // Ajustar índice selecionado
+    if (state.selectedStyleIndex === index) {
+      state.selectedStyleIndex = state.styles.length > 0 ? 0 : -1;
+    } else if (state.selectedStyleIndex > index) {
+      state.selectedStyleIndex--;
+    }
+    
     localStorage.setItem("typer_styles", JSON.stringify(state.styles));
+    localStorage.setItem("typer_last_style", state.selectedStyleIndex);
+    
     renderStyleSelect();
     renderStyleManager();
     notify("Estilo deletado!");
@@ -353,7 +356,7 @@ function renderPreview() {
   container.innerHTML = "";
 
   if (state.lines.length === 0) {
-    container.innerHTML = '<div class="empty-state">Nenhum texto processado</div>';
+    container.innerHTML = '<div class="empty-state">Aguardando texto...</div>';
     return;
   }
 
