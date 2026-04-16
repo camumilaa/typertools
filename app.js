@@ -1,11 +1,14 @@
 let ignoreList = [
-"SFX:", "Sfx:", "sfx:", "SFX", "Sfx", "sfx",
+"SFX:","Sfx:","sfx:","SFX","Sfx","sfx",
 "##","Halaman","Page","---","page","===",
 "P1","P2","[1]","Pg.","PAGE","=0","--"
 ];
 
 let lines = [];
 let index = 0;
+
+// carregar ignore no textarea
+document.getElementById("ignore").value = ignoreList.join("\n");
 
 function processText(){
   let raw = document.getElementById("text").value;
@@ -28,7 +31,10 @@ function updatePreview(){
   lines.forEach((line, i) => {
     let div = document.createElement("div");
     div.className = "item";
-    div.textContent = (i === index ? "👉 " : "") + line;
+
+    if(i === index) div.classList.add("active");
+
+    div.textContent = (i+1) + ". " + line;
     preview.appendChild(div);
   });
 }
@@ -53,8 +59,15 @@ function run(){
 }
 
 function toggleConfig(){
-  document.getElementById("config").classList.toggle("hidden");
+  document.getElementById("configModal").classList.toggle("hidden");
 }
 
-// atualiza automaticamente
+function saveConfig(){
+  let raw = document.getElementById("ignore").value;
+  ignoreList = raw.split("\n").map(t => t.trim()).filter(t => t);
+  toggleConfig();
+  processText();
+}
+
+// auto atualizar
 document.getElementById("text").addEventListener("input", processText);
