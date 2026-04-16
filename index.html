@@ -12,8 +12,8 @@
   <header>
     <div class="logo">TYPERTOOLS PRO</div>
     <div class="header-actions">
-      <button onclick="openStyleModal()" class="btn-nav" title="Estilos">🎨</button>
-      <button onclick="openConfigModal()" class="btn-nav" title="Configurações">⚙️</button>
+      <button onclick="openStyleModal()" class="btn-nav" title="Gerenciar Estilos">🎨</button>
+      <button onclick="openConfigModal()" class="btn-nav" title="Configurar Filtros">⚙️</button>
     </div>
   </header>
 
@@ -26,12 +26,17 @@
       </select>
 
       <div class="nav-row">
-        <button onclick="prevLine()" class="btn-nav" title="Voltar">⬅️</button>
-        <div id="counter">0 / 0</div>
-        <button onclick="nextLine()" class="btn-nav" title="Próximo">➡️</button>
+        <button onclick="prevLine()" class="btn-nav" title="Voltar (⬅️)">⬅️</button>
+        <div id="counter" class="counter">0 / 0</div>
+        <button onclick="nextLine()" class="btn-nav" title="Próximo (➡️)">➡️</button>
       </div>
 
       <button onclick="run()" class="btn-main">Gerar Texto</button>
+
+      <div class="shortcuts-info">
+        <p>⌨️ <strong>Atalho:</strong> Pressione <kbd>B</kbd> + <kbd>A</kbd> para avançar e gerar automaticamente</p>
+        <p>🖱️ <strong>Posição:</strong> O texto será colocado onde seu mouse está</p>
+      </div>
     </div>
 
     <div id="previewContainer">
@@ -53,7 +58,7 @@
       </div>
       
       <div class="form-group">
-        <label>Fonte (Nome exato no Photopea)</label>
+        <label>Fonte (Nome PostScript)</label>
         <input type="text" id="styleFont" placeholder="Ex: ArialMT">
       </div>
       
@@ -72,11 +77,11 @@
   <div id="configModal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Filtros de Linha</h3>
+        <h3>Configurar Filtros</h3>
         <button onclick="closeConfigModal()" class="btn-icon">✕</button>
       </div>
       <p style="font-size: 11px; color: var(--text-dim); margin-bottom: 10px;">
-        Linhas que começam com estes termos serão ignoradas:
+        Linhas que começam com estes termos (ou são apenas números) serão ignoradas:
       </p>
       <textarea id="ignoreInput" style="height: 150px; font-family: monospace;"></textarea>
       <button onclick="saveConfig()" class="btn-main" style="width: 100%; margin-top: 12px;">Salvar Filtros</button>
