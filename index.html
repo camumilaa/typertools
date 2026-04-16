@@ -1,65 +1,98 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="TyperTools - Extensão para Photopea para digitação de textos em imagens">
+  <title>TyperTools - Photopea Extension</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
+<!-- TOPBAR -->
 <div id="topbar">
   <span>TyperTools</span>
   <div>
-    <button onclick="toggleStyle()">🎨</button>
-    <button onclick="toggleConfig()">⚙️</button>
+    <button onclick="toggleStyle()" title="Gerenciar estilos de texto" aria-label="Abrir gerenciador de estilos">🎨</button>
+    <button onclick="toggleConfig()" title="Configurar filtros de linhas" aria-label="Abrir configurações">⚙️</button>
   </div>
 </div>
 
-<textarea id="text" placeholder="Cole o texto aqui..."></textarea>
+<!-- TEXTAREA PRINCIPAL -->
+<textarea id="text" placeholder="Cole o texto aqui..." aria-label="Área de texto para colar conteúdo"></textarea>
 
+<!-- CONTROLES PRINCIPAIS -->
 <div id="controls">
-  <button onclick="nextLine()">Próximo</button>
-  <button onclick="run()">Gerar</button>
+  <button onclick="nextLine()" title="Ir para próxima linha (Próximo)">Próximo</button>
+  <button onclick="run()" title="Gerar camada de texto no Photopea">Gerar</button>
 </div>
 
-<select id="styleSelect"></select>
+<!-- SELETOR DE ESTILO -->
+<select id="styleSelect" aria-label="Selecione um estilo de texto"></select>
 
-<div id="preview"></div>
+<!-- PREVIEW DE LINHAS -->
+<div id="preview" aria-label="Visualização das linhas processadas"></div>
 
-<!-- CONFIG -->
-<div id="configModal" class="modal hidden">
+<!-- MODAL DE CONFIGURAÇÃO -->
+<div id="configModal" class="modal hidden" role="dialog" aria-labelledby="configTitle">
   <div class="modal-content">
-    <h3>Ignorar linhas</h3>
-    <textarea id="ignore"></textarea>
+    <h3 id="configTitle">Ignorar linhas</h3>
+    <p style="color: #999; font-size: 12px; margin: 0 0 8px 0;">
+      Digite os prefixos de linhas que devem ser ignoradas, um por linha:
+    </p>
+    <textarea id="ignore" placeholder="SFX&#10;##&#10;Page&#10;---" aria-label="Prefixos de linhas a ignorar"></textarea>
     <button onclick="saveConfig()">Salvar</button>
     <button onclick="toggleConfig()">Fechar</button>
   </div>
 </div>
 
-<!-- STYLE -->
-<div id="styleModal" class="modal hidden">
+<!-- MODAL DE ESTILOS -->
+<div id="styleModal" class="modal hidden" role="dialog" aria-labelledby="styleTitle">
   <div class="modal-content">
+    <h3 id="styleTitle">Gerenciar Estilos</h3>
 
-    <h3>Estilos</h3>
+    <!-- CRIAR / EDITAR ESTILO -->
+    <div style="background: #252525; padding: 8px; border-radius: 3px; margin-bottom: 12px;">
+      <p style="margin: 0 0 8px 0; color: #999; font-size: 12px;">Criar ou editar estilo:</p>
+      
+      <input 
+        id="styleName" 
+        placeholder="Nome do estilo (ex: Fala, Grito)" 
+        aria-label="Nome do estilo"
+      >
 
-    <!-- CRIAR / EDITAR -->
-    <input id="styleName" placeholder="Nome do estilo (ex: Fala, Grito)">
+      <input 
+        id="fontFamily" 
+        placeholder="Fonte (ex: ArialMT, TimesNewRomanPSMT)" 
+        aria-label="Nome da fonte"
+      >
 
-    <input id="fontFamily" placeholder="Fonte (ex: ArialMT, WildWords)">
+      <input 
+        id="fontSize" 
+        type="number" 
+        value="32" 
+        min="1" 
+        max="1000"
+        placeholder="Tamanho da fonte" 
+        aria-label="Tamanho da fonte em pixels"
+      >
 
-    <input id="fontSize" type="number" value="32" placeholder="Tamanho da fonte">
-
-    <button onclick="saveStyle()">Salvar / Atualizar</button>
+      <button onclick="saveStyle()" style="width: 100%;">Salvar / Atualizar Estilo</button>
+    </div>
 
     <hr>
 
     <!-- LISTA DE ESTILOS -->
+    <p style="color: #999; font-size: 12px; margin: 0 0 8px 0;">Estilos salvos:</p>
     <div id="styleManager"></div>
 
-    <button onclick="toggleStyle()">Fechar</button>
+    <hr>
 
+    <button onclick="toggleStyle()" style="width: 100%;">Fechar</button>
   </div>
 </div>
+
 <script src="app.js"></script>
 </body>
 </html>
