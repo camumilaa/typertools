@@ -2,108 +2,78 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<style>
+body {
+  background:#1e1e1e;
+  color:white;
+  font-family:Arial;
+  padding:10px;
+}
+
+textarea {
+  width:100%;
+  height:100px;
+}
+
+#preview {
+  margin-top:10px;
+  border-top:1px solid #555;
+  padding-top:10px;
+}
+
+.item {
+  background:#2a2a2a;
+  padding:5px;
+  margin:5px 0;
+}
+</style>
 </head>
 
-<body style="background:#1e1e1e;color:white;font-family:Arial;padding:10px;">
+<body>
 
 <h3>TyperTools</h3>
 
-<textarea id="text" style="width:100%;height:120px;" placeholder="Uma fala por linha"></textarea>
+<textarea id="text" placeholder="Uma fala por linha" oninput="updatePreview()"></textarea>
 
-<select id="style">
-  <option value="fala">Fala</option>
-  <option value="grito">Grito</option>
-  <option value="narracao">Narração</option>
-</select>
+<div id="preview"></div>
 
-<select id="font">
-  <option value="ArialMT">Arial</option>
-  <option value="Arial-BoldMT">Arial Bold</option>
-  <option value="TimesNewRomanPSMT">Times</option>
-</select>
+<br>
 
-<input id="size" type="number" value="32" placeholder="Tamanho">
-
-<input id="spacing" type="number" value="70" placeholder="Espaçamento">
-
-<button onclick="run()">Gerar</button>
+<button onclick="run()">Gerar no Photopea</button>
 
 <script>
-function quebrarLinha(texto, max){
-  let palavras = texto.split(" ");
-  let linhas = [];
-  let atual = "";
+function updatePreview(){
+  let raw = document.getElementById("text").value;
+  let lines = raw.split("\n").filter(l => l.trim() !== "");
 
-  for(let i = 0; i < palavras.length; i++){
-    if((atual + palavras[i]).length > max){
-      linhas.push(atual);
-      atual = "";
-    }
-    atual += palavras[i] + " ";
-  }
+  let preview = document.getElementById("preview");
+  preview.innerHTML = "";
 
-  linhas.push(atual);
-  return linhas.join("\n");
+  lines.forEach((line, i) => {
+    let div = document.createElement("div");
+    div.className = "item";
+    div.textContent = (i+1) + " - " + line;
+    preview.appendChild(div);
+  });
 }
 
 function run(){
-
   let raw = document.getElementById("text").value;
-  let style = document.getElementById("style").value;
-  let font = document.getElementById("font").value;
-  let size = document.getElementById("size").value;
-  let spacing = document.getElementById("spacing").value;
-
   let lines = raw.split("\n").filter(l => l.trim() !== "");
 
   let script = `
   var lines = ${JSON.stringify(lines)};
   var y = 150;
 
-  var grupo = app.activeDocument.layerSets.add();
-  grupo.name = "TyperTools";
-
-  function quebrarLinha(texto, max){
-    var palavras = texto.split(" ");
-    var linhas = [];
-    var atual = "";
-
-    for (var i = 0; i < palavras.length; i++) {
-      if ((atual + palavras[i]).length > max) {
-        linhas.push(atual);
-        atual = "";
-      }
-      atual += palavras[i] + " ";
-    }
-
-    linhas.push(atual);
-    return linhas.join("\\n");
-  }
-
   for (var i = 0; i < lines.length; i++) {
 
-    var texto = quebrarLinha(lines[i], 25);
-
-    var layer = grupo.artLayers.add();
+    var layer = app.activeDocument.artLayers.add();
     layer.kind = LayerKind.TEXT;
 
-    layer.name = "fala_" + (i+1);
-
-    layer.textItem.contents = texto;
+    layer.textItem.contents = lines[i];
     layer.textItem.position = [200, y];
 
-    y += ${spacing};
-
-    layer.textItem.font = "${font}";
-    layer.textItem.size = ${size};
-
-    if ("${style}" === "grito") {
-      layer.textItem.size = ${size} * 1.5;
-    }
-
-    if ("${style}" === "narracao") {
-      layer.textItem.size = ${size} * 0.9;
-    }
+    y += 70;
   }
   `;
 
