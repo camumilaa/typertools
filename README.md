@@ -1,31 +1,96 @@
 # TyperTools Pro - Photopea Edition
 
-Uma versão completamente reformulada e elegante da extensão TyperTools para Photopea. Projetada para ser rápida, intuitiva e visualmente deslumbrante.
+A extensão mais rápida e elegante para digitação de textos em imagens no Photopea. Perfeita para typesetters, tradutores de mangá, comics e qualquer projeto que exija adicionar texto em lote.
 
-## ✨ O que há de novo?
+## 🚀 Funcionalidades Principais
 
-- **Interface Pro**: Design moderno com tema escuro, tipografia refinada e animações suaves.
-- **Lógica de Filtragem Corrigida**: Sistema de ignore case-insensitive que realmente funciona.
-- **Persistência de Estilo**: A extensão lembra o último estilo selecionado mesmo após recarregar.
-- **Botão de Voltar**: Navegação completa (Próximo/Anterior) para maior controle.
-- **Preview Inteligente**: Scroll automático para a linha ativa e seleção por clique.
-- **Feedback Instantâneo**: Sistema de notificações (Toasts) para ações de sucesso ou erro.
-- **Estabilidade**: Script de integração com Photopea otimizado para evitar falhas de fonte.
+- **Filtragem Inteligente**: Ignora automaticamente números, páginas, SFX e outros marcadores
+- **Atalhos de Teclado**: Pressione **B + A** para avançar e gerar texto automaticamente
+- **Posicionamento via Mouse**: O texto é colocado exatamente onde seu mouse está
+- **Gerenciamento de Estilos**: Crie e salve estilos personalizados (fonte, tamanho)
+- **Preview em Tempo Real**: Visualize todas as linhas processadas com scroll automático
+- **Persistência**: Seus estilos e configurações são salvos automaticamente
+- **Interface Pro**: Design moderno, responsivo e otimizado para o painel do Photopea
 
-## 🚀 Como usar
+## 📖 Como Usar
 
-1. **Cole seu texto**: Use a área de texto superior. As linhas filtradas aparecerão no preview abaixo.
-2. **Selecione o Estilo**: Escolha um estilo salvo no menu suspenso.
-3. **Navegue**: Use as setas `⬅️` e `➡️` ou clique diretamente na linha desejada no preview.
-4. **Gere**: Clique em **GERAR TEXTO** para criar a camada no Photopea.
+### 1. Colar Texto
+Cole seu script na área de texto. A extensão filtrará automaticamente linhas que:
+- São apenas números (1, 2, 3, etc.)
+- Começam com números (1. Texto, 2- Fala, etc.)
+- Começam com os termos configurados (SFX, Page, etc.)
 
-## 🎨 Dicas de Estilo
+### 2. Selecionar Estilo
+Escolha um estilo no dropdown. Se nenhum estilo existir, crie um novo clicando em 🎨.
 
-Para que as fontes funcionem perfeitamente, use o nome **PostScript** da fonte (ex: `ArialMT` em vez de `Arial`). Se a fonte não existir no Photopea, ele usará a fonte padrão automaticamente sem travar a extensão.
+### 3. Navegar
+- Use as setas **⬅️** e **➡️** para navegar
+- Clique diretamente em qualquer linha no preview
+- Ou use o atalho **B + A** para avançar automaticamente
 
-## ⚙️ Configurações
+### 4. Gerar
+Clique em **GERAR TEXTO** ou use o atalho **B + A**. O texto será colocado no Photopea onde seu mouse está.
 
-Clique no ícone de engrenagem para editar a lista de termos ignorados. Qualquer linha que comece com um desses termos (independente de maiúsculas/minúsculas) será ocultada do processo.
+## ⌨️ Atalhos de Teclado
+
+| Atalho | Ação |
+|--------|------|
+| **B + A** | Avança para próxima linha e gera texto automaticamente |
+| **⬅️** | Volta para linha anterior |
+| **➡️** | Avança para próxima linha |
+
+## 🎨 Criando Estilos
+
+1. Clique no ícone 🎨
+2. Digite o nome do estilo (ex: "Fala Normal", "Grito")
+3. Digite o nome PostScript da fonte (ex: `ArialMT`, `TimesNewRomanPSMT`)
+4. Configure o tamanho em pixels
+5. Clique em "Salvar Estilo"
+
+### Fontes Recomendadas
+
+- **Arial**: `ArialMT`, `Arial-BoldMT`, `Arial-ItalicMT`, `Arial-BoldItalicMT`
+- **Times New Roman**: `TimesNewRomanPSMT`, `TimesNewRomanPS-BoldMT`
+- **Verdana**: `Verdana`, `Verdana-Bold`, `Verdana-Italic`
+- **Courier**: `CourierNewPSMT`, `CourierNewPS-BoldMT`
+
+## ⚙️ Configurando Filtros
+
+Clique em ⚙️ para editar a lista de termos que devem ser ignorados. Cada termo em uma linha separada.
+
+**Exemplo padrão:**
+```
+SFX
+Page
+---
+P1
+P2
+```
+
+Qualquer linha que comece com esses termos (case-insensitive) será ignorada, assim como linhas que são apenas números.
+
+## 🖱️ Posicionamento de Texto
+
+O texto é posicionado automaticamente onde seu mouse está no Photopea. Isso permite colocar cada texto exatamente onde você quer, sem precisar mover manualmente.
+
+## 💾 Dados Salvos
+
+Todos os dados são armazenados localmente no navegador:
+- ✅ Estilos criados
+- ✅ Filtros personalizados
+- ✅ Último estilo selecionado
+
+## 🔧 Troubleshooting
+
+**Problema**: Fonte não está sendo aplicada
+- **Solução**: Verifique o nome PostScript exato da fonte no Photopea. Use a aba de fontes para copiar o nome correto.
+
+**Problema**: Linhas que deveriam ser ignoradas não estão sendo
+- **Solução**: Verifique se o termo está exatamente como aparece no texto. A filtragem é case-insensitive, mas precisa do termo correto.
+
+**Problema**: Texto não aparece onde o mouse está
+- **Solução**: Certifique-se de que o Photopea está em foco e que há um documento aberto.
 
 ---
-*Desenvolvido para máxima produtividade.*
+
+**TyperTools Pro** - Desenvolvido para máxima produtividade ⚡
