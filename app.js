@@ -30,7 +30,21 @@ const TRANSLATIONS = {
     filtersUpdated: "Filtros atualizados!",
     fontSelected: "Fonte selecionada!",
     confirmDelete: "Excluir este estilo?",
-    errorPhotopea: "Nenhum documento aberto no Photopea!"
+    errorPhotopea: "Nenhum documento aberto no Photopea!",
+    feedback: "💬 Comunidade",
+    feedbackTitle: "Enviar Sugestão ou Bug",
+    feedbackDesc: "Sua sugestão aparecerá aqui para toda a comunidade ver!",
+    feedbackType: "Tipo",
+    feedbackBug: "🐛 Bug",
+    feedbackSuggestion: "💡 Sugestão",
+    feedbackMessage: "Mensagem",
+    feedbackSend: "Enviar Sugestão",
+    feedbackSuccess: "✓ Sugestão enviada com sucesso!",
+    feedbackError: "Erro ao enviar sugestão. Tente novamente.",
+    feedbackEmpty: "Preencha todos os campos!",
+    communityTab: "Comunidade",
+    noSuggestions: "Nenhuma sugestão ainda. Seja o primeiro!",
+    likes: "Likes"
   },
   en: {
     logo: "TYPERTOOLS GLOBAL",
@@ -62,7 +76,21 @@ const TRANSLATIONS = {
     filtersUpdated: "Filters updated!",
     fontSelected: "Font selected!",
     confirmDelete: "Delete this style?",
-    errorPhotopea: "No document open in Photopea!"
+    errorPhotopea: "No document open in Photopea!",
+    feedback: "💬 Community",
+    feedbackTitle: "Send Suggestion or Bug",
+    feedbackDesc: "Your suggestion will appear here for the whole community to see!",
+    feedbackType: "Type",
+    feedbackBug: "🐛 Bug",
+    feedbackSuggestion: "💡 Suggestion",
+    feedbackMessage: "Message",
+    feedbackSend: "Send Suggestion",
+    feedbackSuccess: "✓ Suggestion sent successfully!",
+    feedbackError: "Error sending suggestion. Try again.",
+    feedbackEmpty: "Fill in all fields!",
+    communityTab: "Community",
+    noSuggestions: "No suggestions yet. Be the first!",
+    likes: "Likes"
   }
 };
 
@@ -77,7 +105,9 @@ let state = {
   selectedStyleIndex: -1,
   mouseX: 0,
   mouseY: 0,
-  keysPressed: new Set()
+  keysPressed: new Set(),
+  suggestions: [],
+  userLikes: new Set()
 };
 
 // ===== INICIALIZAÇÃO =====
@@ -100,6 +130,21 @@ function loadData() {
       const idx = parseInt(savedLastStyle);
       if (idx >= 0 && idx < state.styles.length) state.selectedStyleIndex = idx;
     }
+    
+    const savedText = localStorage.getItem("typer_text");
+    if (savedText) {
+      document.getElementById("textInput").value = savedText;
+      processText();
+    }
+    
+    // Carregar sugestões
+    const savedSuggestions = localStorage.getItem("typer_suggestions");
+    state.suggestions = savedSuggestions ? JSON.parse(savedSuggestions) : [];
+    
+    // Carregar likes do usuário
+    const savedLikes = localStorage.getItem("typer_user_likes");
+    state.userLikes = new Set(savedLikes ? JSON.parse(savedLikes) : []);
+    
     document.getElementById("ignoreInput").value = state.ignoreList.join("\n");
     document.getElementById("langSelect").value = state.lang;
   } catch (e) {
@@ -108,9 +153,16 @@ function loadData() {
 }
 
 function setupEventListeners() {
-  document.getElementById("textInput").addEventListener("input", () => {
+  const textInput = document.getElementById("textInput");
+  
+  textInput.addEventListener("input", () => {
+    localStorage.setItem("typer_text", textInput.value);
     processText();
     renderPreview();
+  });
+
+  textInput.addEventListener("blur", () => {
+    localStorage.setItem("typer_text", textInput.value);
   });
 
   document.getElementById("styleSelect").addEventListener("change", (e) => {
@@ -125,21 +177,38 @@ function setupEventListeners() {
     renderAll();
   });
 
+  // ===== ATALHOS GLOBAIS =====
   document.addEventListener("keydown", (e) => {
     const key = e.key.toLowerCase();
     state.keysPressed.add(key);
+
+    // B + A = Avançar e Gerar (mesmo fora do plugin)
     if (state.keysPressed.has('b') && state.keysPressed.has('a')) {
       e.preventDefault();
       nextLine();
       setTimeout(() => run(), 50);
       state.keysPressed.clear();
+      return;
     }
+
+    // Ctrl/Cmd + Enter = Gerar
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault();
       run();
+      return;
     }
-    if (e.key === 'ArrowRight') { e.preventDefault(); nextLine(); }
-    if (e.key === 'ArrowLeft') { e.preventDefault(); prevLine(); }
+
+    // Setas para navegação (mesmo fora do plugin)
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      nextLine();
+      return;
+    }
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      prevLine();
+      return;
+    }
   });
 
   document.addEventListener("keyup", (e) => {
@@ -155,6 +224,7 @@ function setupEventListeners() {
     if (e.target.id === "styleModal") closeStyleModal();
     if (e.target.id === "configModal") closeConfigModal();
     if (e.target.id === "fontsModal") closeFontsModal();
+    if (e.target.id === "feedbackModal") closeFeedbackModal();
   });
 }
 
@@ -167,7 +237,6 @@ function applyTranslations() {
   document.getElementById("shortcutInfo").innerHTML = t.shortcuts;
   document.getElementById("mouseInfo").innerHTML = t.mousePos;
   
-  // Modais
   document.getElementById("styleModalTitle").textContent = t.manageStyles;
   document.getElementById("styleNameLabel").textContent = t.styleName;
   document.getElementById("styleFontLabel").textContent = t.fontPostscript;
@@ -180,6 +249,13 @@ function applyTranslations() {
   document.getElementById("configModalTitle").textContent = t.filterTitle;
   document.getElementById("configModalDesc").textContent = t.filterDesc;
   document.getElementById("saveFiltersBtn").textContent = t.saveFilters;
+  
+  document.getElementById("feedbackBtn").textContent = t.feedback;
+  document.getElementById("feedbackModalTitle").textContent = t.feedbackTitle;
+  document.getElementById("feedbackModalDesc").textContent = t.feedbackDesc;
+  document.getElementById("feedbackTypeLabel").textContent = t.feedbackType;
+  document.getElementById("feedbackMessageLabel").textContent = t.feedbackMessage;
+  document.getElementById("sendFeedbackBtn").textContent = t.feedbackSend;
 }
 
 // ===== LÓGICA DE TEXTO =====
@@ -362,6 +438,104 @@ function renderFontsList() {
     });
     container.appendChild(categoryDiv);
   });
+}
+
+// ===== SISTEMA DE SUGESTÕES =====
+function openFeedbackModal() {
+  document.getElementById("feedbackModal").classList.remove("hidden");
+  renderCommunity();
+}
+
+function closeFeedbackModal() {
+  document.getElementById("feedbackModal").classList.add("hidden");
+  clearFeedbackInputs();
+}
+
+function sendFeedback() {
+  const t = TRANSLATIONS[state.lang];
+  const type = document.getElementById("feedbackType").value;
+  const message = document.getElementById("feedbackMessage").value.trim();
+
+  if (!type || !message) {
+    notify(t.feedbackEmpty, "error");
+    return;
+  }
+
+  const suggestion = {
+    id: Date.now(),
+    type: type,
+    message: message,
+    lang: state.lang,
+    date: new Date().toLocaleString(),
+    likes: 0
+  };
+
+  state.suggestions.push(suggestion);
+  localStorage.setItem("typer_suggestions", JSON.stringify(state.suggestions));
+  
+  notify(t.feedbackSuccess, "success");
+  clearFeedbackInputs();
+  renderCommunity();
+}
+
+function likeSuggestion(id) {
+  const likeKey = `like_${id}`;
+  
+  if (state.userLikes.has(likeKey)) {
+    state.userLikes.delete(likeKey);
+    const suggestion = state.suggestions.find(s => s.id === id);
+    if (suggestion) suggestion.likes--;
+  } else {
+    state.userLikes.add(likeKey);
+    const suggestion = state.suggestions.find(s => s.id === id);
+    if (suggestion) suggestion.likes++;
+  }
+
+  localStorage.setItem("typer_user_likes", JSON.stringify(Array.from(state.userLikes)));
+  localStorage.setItem("typer_suggestions", JSON.stringify(state.suggestions));
+  renderCommunity();
+}
+
+function renderCommunity() {
+  const container = document.getElementById("communityList");
+  const t = TRANSLATIONS[state.lang];
+
+  if (!container) return;
+
+  if (state.suggestions.length === 0) {
+    container.innerHTML = `<div class="empty-state">${t.noSuggestions}</div>`;
+    return;
+  }
+
+  // Ordenar por likes (decrescente)
+  const sorted = [...state.suggestions].sort((a, b) => b.likes - a.likes);
+
+  container.innerHTML = "";
+  sorted.forEach(suggestion => {
+    const likeKey = `like_${suggestion.id}`;
+    const isLiked = state.userLikes.has(likeKey);
+    
+    const item = document.createElement("div");
+    item.className = "suggestion-item";
+    item.innerHTML = `
+      <div class="suggestion-header">
+        <span class="suggestion-type ${suggestion.type}">${suggestion.type === 'bug' ? '🐛 Bug' : '💡 Sugestão'}</span>
+        <span class="suggestion-date">${suggestion.date}</span>
+      </div>
+      <div class="suggestion-message">${suggestion.message}</div>
+      <div class="suggestion-footer">
+        <button onclick="likeSuggestion(${suggestion.id})" class="btn-like ${isLiked ? 'liked' : ''}">
+          ❤️ ${suggestion.likes}
+        </button>
+      </div>
+    `;
+    container.appendChild(item);
+  });
+}
+
+function clearFeedbackInputs() {
+  document.getElementById("feedbackType").value = "suggestion";
+  document.getElementById("feedbackMessage").value = "";
 }
 
 // ===== CONFIGURAÇÕES =====
