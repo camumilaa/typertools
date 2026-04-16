@@ -3,16 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TyperTools Pro</title>
+  <title>TyperTools Master</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
   <header>
-    <div class="logo">TYPERTOOLS PRO</div>
+    <div class="logo">TYPERTOOLS MASTER</div>
     <div class="header-actions">
       <button onclick="openStyleModal()" class="btn-nav" title="Gerenciar Estilos">🎨</button>
+      <button onclick="openFontsModal()" class="btn-nav" title="Catálogo de Fontes">📚</button>
       <button onclick="openConfigModal()" class="btn-nav" title="Configurar Filtros">⚙️</button>
     </div>
   </header>
@@ -34,8 +35,9 @@
       <button onclick="run()" class="btn-main">Gerar Texto</button>
 
       <div class="shortcuts-info">
-        <p>⌨️ <strong>Atalho:</strong> Pressione <kbd>B</kbd> + <kbd>A</kbd> para avançar e gerar automaticamente</p>
-        <p>🖱️ <strong>Posição:</strong> O texto será colocado onde seu mouse está</p>
+        <p>⌨️ <strong>B + A</strong>: Avança e gera automaticamente</p>
+        <p>⌨️ <strong>Ctrl + Enter</strong>: Gera texto</p>
+        <p>🖱️ <strong>Posição</strong>: Onde o mouse está</p>
       </div>
     </div>
 
@@ -58,8 +60,11 @@
       </div>
       
       <div class="form-group">
-        <label>Fonte (Nome PostScript)</label>
-        <input type="text" id="styleFont" placeholder="Ex: ArialMT">
+        <label>Fonte (PostScript)</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="styleFont" placeholder="Ex: ArialMT" style="flex: 1;">
+          <button onclick="openFontsModal()" class="btn-nav" style="flex: 0;">📚</button>
+        </div>
       </div>
       
       <div class="form-group">
@@ -70,6 +75,20 @@
       <button onclick="saveStyle()" class="btn-main" style="width: 100%;">Salvar Estilo</button>
 
       <div id="styleList" class="style-list"></div>
+    </div>
+  </div>
+
+  <!-- MODAL FONTES -->
+  <div id="fontsModal" class="modal hidden">
+    <div class="modal-content fonts-modal">
+      <div class="modal-header">
+        <h3>Catálogo de Fontes</h3>
+        <button onclick="closeFontsModal()" class="btn-icon">✕</button>
+      </div>
+      <p style="font-size: 11px; color: var(--text-dim); margin: 0 0 12px 0;">
+        Clique em uma fonte para selecioná-la automaticamente:
+      </p>
+      <div id="fontsList" class="fonts-list"></div>
     </div>
   </div>
 
@@ -90,6 +109,7 @@
 
   <div id="toast" class="toast">Mensagem</div>
 
+  <script src="fonts.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
