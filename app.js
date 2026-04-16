@@ -1,346 +1,272 @@
-// ===== IGNORE =====
-let ignoreList = [
-  "SFX:","Sfx:","sfx:","SFX","Sfx","sfx",
-  "##","Halaman","Page","---","page","===",
-  "P1","P2","[1]","Pg.","PAGE","=0","--"
-];
-
-// ===== ESTILOS =====
-let styles = [];
-let loadStyles = () => {
-  try {
-    const stored = localStorage.getItem("styles");
-    styles = stored ? JSON.parse(stored) : [];
-  } catch(e) {
-    console.error("Erro ao carregar estilos:", e);
-    styles = [];
-  }
+// ===== ESTADO GLOBAL =====
+let state = {
+  ignoreList: ["SFX:", "Sfx:", "sfx:", "SFX", "Sfx", "sfx", "##", "Halaman", "Page", "---", "page", "===", "P1", "P2", "[1]", "Pg.", "PAGE", "=0", "--"],
+  styles: [],
+  lines: [],
+  currentIndex: 0,
+  editingStyleIndex: null,
+  selectedStyleIndex: -1
 };
-loadStyles();
 
-// ===== DADOS =====
-let lines = [];
-let index = 0;
-let editingIndex = null;
-
-// ===== FONTES SEGURAS =====
-let fontList = [
-  "ArialMT",
-  "Arial-BoldMT",
-  "Arial-ItalicMT",
-  "Arial-BoldItalicMT",
-  "TimesNewRomanPSMT",
-  "TimesNewRomanPS-BoldMT",
-  "TimesNewRomanPS-ItalicMT",
-  "TimesNewRomanPS-BoldItalicMT",
-  "Verdana",
-  "Verdana-Bold",
-  "Verdana-Italic",
-  "Verdana-BoldItalic",
-  "CourierNewPSMT",
-  "CourierNewPS-BoldMT",
-  "CourierNewPS-ItalicMT",
-  "CourierNewPS-BoldItalicMT",
-  "Helvetica",
-  "Helvetica-Bold",
-  "Helvetica-Oblique",
-  "Helvetica-BoldOblique",
-  "Georgia",
-  "Georgia-Bold",
-  "Georgia-Italic",
-  "Georgia-BoldItalic"
-];
-
-// ===== INIT =====
+// ===== INICIALIZAÇÃO =====
 document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("ignore").value = ignoreList.join("\n");
-  updateStyleList();
-  processText();
-  
-  // Auto-processar ao colar texto
-  document.getElementById("text").addEventListener("input", processText);
+  loadData();
+  setupEventListeners();
+  renderAll();
 });
 
-// ===== TEXTO =====
-function processText(){
+function loadData() {
   try {
-    let raw = document.getElementById("text").value;
+    const savedStyles = localStorage.getItem("typer_styles");
+    state.styles = savedStyles ? JSON.parse(savedStyles) : [];
     
-    lines = raw.split("\n").filter(line => {
-      let t = line.trim();
-      if (!t) return false;
-      return !ignoreList.some(tag => t.startsWith(tag));
-    });
+    const savedIgnore = localStorage.getItem("typer_ignore");
+    if (savedIgnore) state.ignoreList = JSON.parse(savedIgnore);
+    
+    const savedLastStyle = localStorage.getItem("typer_last_style");
+    if (savedLastStyle !== null) state.selectedStyleIndex = parseInt(savedLastStyle);
 
-    index = 0;
-    updatePreview();
-  } catch(e) {
-    console.error("Erro ao processar texto:", e);
+    document.getElementById("ignoreInput").value = state.ignoreList.join("\n");
+  } catch (e) {
+    console.error("Erro ao carregar dados:", e);
   }
 }
 
-// ===== PREVIEW =====
-function updatePreview(){
-  try {
-    let preview = document.getElementById("preview");
-    preview.innerHTML = "";
-
-    if(lines.length === 0) {
-      let empty = document.createElement("div");
-      empty.style.textAlign = "center";
-      empty.style.color = "#999";
-      empty.textContent = "Nenhuma linha para exibir";
-      preview.appendChild(empty);
-      return;
-    }
-
-    lines.forEach((line, i) => {
-      let div = document.createElement("div");
-      div.className = "item";
-      if(i === index) div.classList.add("active");
-
-      div.textContent = (i+1) + ". " + line;
-      div.style.cursor = "pointer";
-      div.onclick = () => {
-        index = i;
-        updatePreview();
-      };
-      preview.appendChild(div);
-    });
-  } catch(e) {
-    console.error("Erro ao atualizar preview:", e);
-  }
-}
-
-// ===== NEXT =====
-function nextLine(){
-  if(index < lines.length - 1){
-    index++;
-    updatePreview();
-  }
-}
-
-// ===== ESCAPE STRING =====
-function escapeString(str) {
-  return str
-    .replace(/\\/g, "\\\\")
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, "\\n")
-    .replace(/\r/g, "\\r")
-    .replace(/\t/g, "\\t");
-}
-
-// ===== GERAR =====
-function run(){
-  try {
-    let selected = document.getElementById("styleSelect").value;
-    
-    if(selected === "" || !styles[selected]){
-      alert("Escolha um estilo!");
-      return;
-    }
-
-    if(lines.length === 0) {
-      alert("Nenhuma linha para gerar!");
-      return;
-    }
-
-    let style = styles[selected];
-    let text = escapeString(lines[index]);
-
-    let script = `
-    var layer = app.activeDocument.artLayers.add();
-    layer.kind = LayerKind.TEXT;
-    layer.textItem.contents = "${text}";
-    layer.textItem.position = [200, 200];
-    
-    try {
-      layer.textItem.font = "${style.font}";
-    } catch(e) {
-      // Fonte não disponível, usar padrão
-    }
-    
-    layer.textItem.size = ${parseInt(style.size) || 32};
-    `;
-
-    window.parent.postMessage(script, "*");
-    
-    // Feedback visual
-    let btn = event.target;
-    let original = btn.textContent;
-    btn.textContent = "✓ Enviado!";
-    setTimeout(() => {
-      btn.textContent = original;
-    }, 1500);
-    
-  } catch(e) {
-    console.error("Erro ao gerar:", e);
-    alert("Erro ao gerar texto. Verifique o console.");
-  }
-}
-
-// ===== CONFIG =====
-function toggleConfig(){
-  document.getElementById("configModal").classList.toggle("hidden");
-}
-
-function saveConfig(){
-  try {
-    let raw = document.getElementById("ignore").value;
-    ignoreList = raw.split("\n").map(t => t.trim()).filter(t => t);
-    toggleConfig();
+function setupEventListeners() {
+  document.getElementById("textInput").addEventListener("input", () => {
     processText();
-  } catch(e) {
-    console.error("Erro ao salvar config:", e);
-    alert("Erro ao salvar configuração!");
+    renderPreview();
+  });
+
+  document.getElementById("styleSelect").addEventListener("change", (e) => {
+    state.selectedStyleIndex = parseInt(e.target.value);
+    localStorage.setItem("typer_last_style", state.selectedStyleIndex);
+  });
+}
+
+// ===== LÓGICA DE TEXTO =====
+function processText() {
+  const raw = document.getElementById("textInput").value;
+  const rawLines = raw.split("\n");
+  
+  state.lines = rawLines.map(l => l.trim()).filter(line => {
+    if (!line) return false;
+    // Verifica se a linha começa com qualquer um dos itens da ignoreList (case insensitive)
+    return !state.ignoreList.some(pattern => 
+      line.toLowerCase().startsWith(pattern.toLowerCase())
+    );
+  });
+
+  state.currentIndex = 0;
+}
+
+// ===== NAVEGAÇÃO =====
+function nextLine() {
+  if (state.currentIndex < state.lines.length - 1) {
+    state.currentIndex++;
+    renderPreview();
   }
 }
 
-// ===== STYLE UI =====
-function toggleStyle(){
-  document.getElementById("styleModal").classList.toggle("hidden");
+function prevLine() {
+  if (state.currentIndex > 0) {
+    state.currentIndex--;
+    renderPreview();
+  }
 }
 
-// ===== SALVAR / EDITAR =====
-function saveStyle(){
-  try {
-    let name = document.getElementById("styleName").value.trim();
-    let font = document.getElementById("fontFamily").value.trim();
-    let size = document.getElementById("fontSize").value;
+function goToLine(index) {
+  state.currentIndex = index;
+  renderPreview();
+}
 
-    if(!name) {
-      alert("Digite um nome para o estilo!");
-      return;
-    }
+// ===== EXECUÇÃO PHOTOPEA =====
+function run() {
+  if (state.lines.length === 0) return notify("Cole algum texto primeiro!", "error");
+  if (state.selectedStyleIndex === -1 || !state.styles[state.selectedStyleIndex]) {
+    return notify("Selecione um estilo!", "error");
+  }
+
+  const style = state.styles[state.selectedStyleIndex];
+  const text = escapeJS(state.lines[state.currentIndex]);
+  
+  // Script otimizado para Photopea
+  const script = `
+    (function() {
+      if (app.documents.length == 0) return;
+      var doc = app.activeDocument;
+      var layer = doc.artLayers.add();
+      layer.kind = LayerKind.TEXT;
+      var ti = layer.textItem;
+      ti.contents = "${text}";
+      ti.size = ${style.size};
+      try {
+        ti.font = "${style.font}";
+      } catch(e) {
+        alert("Fonte '${style.font}' não encontrada no Photopea. Usando padrão.");
+      }
+      // Centralizar levemente
+      ti.position = [doc.width/2, doc.height/2];
+    })();
+  `;
+
+  window.parent.postMessage(script, "*");
+  notify("Texto enviado!", "success");
+}
+
+// ===== GERENCIAMENTO DE ESTILOS =====
+function openStyleModal() {
+  document.getElementById("styleModal").classList.remove("hidden");
+  renderStyleManager();
+}
+
+function closeStyleModal() {
+  document.getElementById("styleModal").classList.add("hidden");
+  state.editingStyleIndex = null;
+  clearStyleInputs();
+}
+
+function saveStyle() {
+  const name = document.getElementById("styleName").value.trim();
+  const font = document.getElementById("styleFont").value.trim();
+  const size = parseInt(document.getElementById("styleSize").value);
+
+  if (!name || !font || isNaN(size)) return notify("Preencha todos os campos!", "error");
+
+  const styleObj = { name, font, size };
+
+  if (state.editingStyleIndex !== null) {
+    state.styles[state.editingStyleIndex] = styleObj;
+    state.editingStyleIndex = null;
+  } else {
+    state.styles.push(styleObj);
+    state.selectedStyleIndex = state.styles.length - 1;
+  }
+
+  localStorage.setItem("typer_styles", JSON.stringify(state.styles));
+  localStorage.setItem("typer_last_style", state.selectedStyleIndex);
+  
+  renderStyleSelect();
+  renderStyleManager();
+  clearStyleInputs();
+  notify("Estilo salvo!");
+}
+
+function editStyle(index) {
+  const s = state.styles[index];
+  document.getElementById("styleName").value = s.name;
+  document.getElementById("styleFont").value = s.font;
+  document.getElementById("styleSize").value = s.size;
+  state.editingStyleIndex = index;
+}
+
+function deleteStyle(index) {
+  if (confirm("Excluir este estilo?")) {
+    state.styles.splice(index, 1);
+    if (state.selectedStyleIndex >= state.styles.length) state.selectedStyleIndex = state.styles.length - 1;
+    localStorage.setItem("typer_styles", JSON.stringify(state.styles));
+    renderStyleSelect();
+    renderStyleManager();
+  }
+}
+
+// ===== CONFIGURAÇÕES =====
+function openConfigModal() {
+  document.getElementById("configModal").classList.remove("hidden");
+}
+
+function closeConfigModal() {
+  document.getElementById("configModal").classList.add("hidden");
+}
+
+function saveConfig() {
+  const raw = document.getElementById("ignoreInput").value;
+  state.ignoreList = raw.split("\n").map(s => s.trim()).filter(s => s);
+  localStorage.setItem("typer_ignore", JSON.stringify(state.ignoreList));
+  processText();
+  renderPreview();
+  closeConfigModal();
+  notify("Filtros atualizados!");
+}
+
+// ===== UTILITÁRIOS DE RENDERIZAÇÃO =====
+function renderAll() {
+  renderStyleSelect();
+  renderPreview();
+}
+
+function renderStyleSelect() {
+  const select = document.getElementById("styleSelect");
+  select.innerHTML = '<option value="-1">-- Selecione o Estilo --</option>';
+  
+  state.styles.forEach((s, i) => {
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = `${s.name} (${s.font})`;
+    if (i === state.selectedStyleIndex) opt.selected = true;
+    select.appendChild(opt);
+  });
+}
+
+function renderPreview() {
+  const container = document.getElementById("previewContainer");
+  container.innerHTML = "";
+
+  if (state.lines.length === 0) {
+    container.innerHTML = '<div class="empty-state">Nenhum texto processado</div>';
+    return;
+  }
+
+  state.lines.forEach((line, i) => {
+    const div = document.createElement("div");
+    div.className = `preview-item ${i === state.currentIndex ? 'active' : ''}`;
+    div.innerHTML = `<span class="line-num">${i + 1}</span> <span class="line-text">${line}</span>`;
+    div.onclick = () => goToLine(i);
+    container.appendChild(div);
     
-    if(!font) {
-      alert("Digite o nome da fonte!");
-      return;
+    if (i === state.currentIndex) {
+      div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
+  });
 
-    size = parseInt(size) || 32;
-    if(size < 1 || size > 1000) {
-      alert("Tamanho deve estar entre 1 e 1000!");
-      return;
-    }
-
-    let obj = { name, font, size };
-
-    if(editingIndex !== null){
-      styles[editingIndex] = obj;
-      editingIndex = null;
-    } else {
-      styles.push(obj);
-    }
-
-    localStorage.setItem("styles", JSON.stringify(styles));
-
-    // Limpar campos
-    document.getElementById("styleName").value = "";
-    document.getElementById("fontFamily").value = "";
-    document.getElementById("fontSize").value = "32";
-
-    updateStyleList();
-    toggleStyle();
-  } catch(e) {
-    console.error("Erro ao salvar estilo:", e);
-    alert("Erro ao salvar estilo!");
-  }
+  // Atualizar contador
+  document.getElementById("counter").textContent = `${state.currentIndex + 1} / ${state.lines.length}`;
 }
 
-// ===== LISTA DE ESTILOS =====
-function updateStyleList(){
-  try {
-    let select = document.getElementById("styleSelect");
-    select.innerHTML = '<option value="">-- Selecione um estilo --</option>';
+function renderStyleManager() {
+  const list = document.getElementById("styleList");
+  list.innerHTML = "";
 
-    styles.forEach((s, i) => {
-      let opt = document.createElement("option");
-      opt.value = i;
-      opt.textContent = s.name + " (" + s.font + ", " + s.size + "px)";
-      select.appendChild(opt);
-    });
-
-    updateStyleManager();
-  } catch(e) {
-    console.error("Erro ao atualizar lista de estilos:", e);
-  }
+  state.styles.forEach((s, i) => {
+    const item = document.createElement("div");
+    item.className = "style-item";
+    item.innerHTML = `
+      <div class="style-info">
+        <strong>${s.name}</strong>
+        <span>${s.font} - ${s.size}px</span>
+      </div>
+      <div class="style-actions">
+        <button onclick="editStyle(${i})" class="btn-icon">✏️</button>
+        <button onclick="deleteStyle(${i})" class="btn-icon btn-danger">🗑️</button>
+      </div>
+    `;
+    list.appendChild(item);
+  });
 }
 
-// ===== GERENCIAR ESTILOS =====
-function updateStyleManager(){
-  try {
-    let list = document.getElementById("styleManager");
-    if(!list) return;
-
-    list.innerHTML = "";
-
-    if(styles.length === 0) {
-      let empty = document.createElement("div");
-      empty.style.textAlign = "center";
-      empty.style.color = "#999";
-      empty.textContent = "Nenhum estilo criado";
-      list.appendChild(empty);
-      return;
-    }
-
-    styles.forEach((s, i) => {
-      let div = document.createElement("div");
-      div.className = "item";
-
-      div.innerHTML = `
-        <b>${escapeString(s.name)}</b><br>
-        Fonte: ${escapeString(s.font)}<br>
-        Tamanho: ${s.size}px
-        <br>
-        <button class="btn-small" onclick="editStyle(${i})">Editar</button>
-        <button class="btn-small btn-danger" onclick="deleteStyle(${i})">Deletar</button>
-      `;
-
-      list.appendChild(div);
-    });
-  } catch(e) {
-    console.error("Erro ao atualizar gerenciador de estilos:", e);
-  }
+function notify(msg, type = "success") {
+  const toast = document.getElementById("toast");
+  toast.textContent = msg;
+  toast.className = `toast show ${type}`;
+  setTimeout(() => toast.classList.remove("show"), 3000);
 }
 
-// ===== EDITAR =====
-function editStyle(i){
-  try {
-    if(i < 0 || i >= styles.length) {
-      alert("Estilo não encontrado!");
-      return;
-    }
-
-    let s = styles[i];
-
-    document.getElementById("styleName").value = s.name;
-    document.getElementById("fontFamily").value = s.font;
-    document.getElementById("fontSize").value = s.size;
-
-    editingIndex = i;
-    toggleStyle();
-  } catch(e) {
-    console.error("Erro ao editar estilo:", e);
-    alert("Erro ao editar estilo!");
-  }
+function clearStyleInputs() {
+  document.getElementById("styleName").value = "";
+  document.getElementById("styleFont").value = "";
+  document.getElementById("styleSize").value = "32";
 }
 
-// ===== DELETAR =====
-function deleteStyle(i){
-  try {
-    if(i < 0 || i >= styles.length) {
-      alert("Estilo não encontrado!");
-      return;
-    }
-
-    if(confirm("Tem certeza que deseja deletar este estilo?")) {
-      styles.splice(i, 1);
-      localStorage.setItem("styles", JSON.stringify(styles));
-      updateStyleList();
-    }
-  } catch(e) {
-    console.error("Erro ao deletar estilo:", e);
-    alert("Erro ao deletar estilo!");
-  }
+function escapeJS(str) {
+  return str.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n");
 }
