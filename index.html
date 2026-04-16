@@ -3,96 +3,88 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="TyperTools - Extensão para Photopea para digitação de textos em imagens">
-  <title>TyperTools - Photopea Extension</title>
+  <title>TyperTools Pro</title>
   <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
-
 <body>
 
-<!-- TOPBAR -->
-<div id="topbar">
-  <span>TyperTools</span>
-  <div>
-    <button onclick="toggleStyle()" title="Gerenciar estilos de texto" aria-label="Abrir gerenciador de estilos">🎨</button>
-    <button onclick="toggleConfig()" title="Configurar filtros de linhas" aria-label="Abrir configurações">⚙️</button>
-  </div>
-</div>
+  <header>
+    <div class="logo">TYPERTOOLS PRO</div>
+    <div class="header-actions">
+      <button onclick="openStyleModal()" class="btn-nav" title="Estilos">🎨</button>
+      <button onclick="openConfigModal()" class="btn-nav" title="Configurações">⚙️</button>
+    </div>
+  </header>
 
-<!-- TEXTAREA PRINCIPAL -->
-<textarea id="text" placeholder="Cole o texto aqui..." aria-label="Área de texto para colar conteúdo"></textarea>
+  <main class="main-content">
+    <textarea id="textInput" placeholder="Cole seu script aqui..."></textarea>
 
-<!-- CONTROLES PRINCIPAIS -->
-<div id="controls">
-  <button onclick="nextLine()" title="Ir para próxima linha (Próximo)">Próximo</button>
-  <button onclick="run()" title="Gerar camada de texto no Photopea">Gerar</button>
-</div>
+    <div class="controls-card">
+      <select id="styleSelect">
+        <option value="-1">-- Selecione o Estilo --</option>
+      </select>
 
-<!-- SELETOR DE ESTILO -->
-<select id="styleSelect" aria-label="Selecione um estilo de texto"></select>
+      <div class="nav-row">
+        <button onclick="prevLine()" class="btn-nav" title="Voltar">⬅️</button>
+        <div id="counter">0 / 0</div>
+        <button onclick="nextLine()" class="btn-nav" title="Próximo">➡️</button>
+      </div>
 
-<!-- PREVIEW DE LINHAS -->
-<div id="preview" aria-label="Visualização das linhas processadas"></div>
-
-<!-- MODAL DE CONFIGURAÇÃO -->
-<div id="configModal" class="modal hidden" role="dialog" aria-labelledby="configTitle">
-  <div class="modal-content">
-    <h3 id="configTitle">Ignorar linhas</h3>
-    <p style="color: #999; font-size: 12px; margin: 0 0 8px 0;">
-      Digite os prefixos de linhas que devem ser ignoradas, um por linha:
-    </p>
-    <textarea id="ignore" placeholder="SFX&#10;##&#10;Page&#10;---" aria-label="Prefixos de linhas a ignorar"></textarea>
-    <button onclick="saveConfig()">Salvar</button>
-    <button onclick="toggleConfig()">Fechar</button>
-  </div>
-</div>
-
-<!-- MODAL DE ESTILOS -->
-<div id="styleModal" class="modal hidden" role="dialog" aria-labelledby="styleTitle">
-  <div class="modal-content">
-    <h3 id="styleTitle">Gerenciar Estilos</h3>
-
-    <!-- CRIAR / EDITAR ESTILO -->
-    <div style="background: #252525; padding: 8px; border-radius: 3px; margin-bottom: 12px;">
-      <p style="margin: 0 0 8px 0; color: #999; font-size: 12px;">Criar ou editar estilo:</p>
-      
-      <input 
-        id="styleName" 
-        placeholder="Nome do estilo (ex: Fala, Grito)" 
-        aria-label="Nome do estilo"
-      >
-
-      <input 
-        id="fontFamily" 
-        placeholder="Fonte (ex: ArialMT, TimesNewRomanPSMT)" 
-        aria-label="Nome da fonte"
-      >
-
-      <input 
-        id="fontSize" 
-        type="number" 
-        value="32" 
-        min="1" 
-        max="1000"
-        placeholder="Tamanho da fonte" 
-        aria-label="Tamanho da fonte em pixels"
-      >
-
-      <button onclick="saveStyle()" style="width: 100%;">Salvar / Atualizar Estilo</button>
+      <button onclick="run()" class="btn-main">Gerar Texto</button>
     </div>
 
-    <hr>
+    <div id="previewContainer">
+      <div class="empty-state">Aguardando texto...</div>
+    </div>
+  </main>
 
-    <!-- LISTA DE ESTILOS -->
-    <p style="color: #999; font-size: 12px; margin: 0 0 8px 0;">Estilos salvos:</p>
-    <div id="styleManager"></div>
+  <!-- MODAL ESTILOS -->
+  <div id="styleModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Gerenciar Estilos</h3>
+        <button onclick="closeStyleModal()" class="btn-icon">✕</button>
+      </div>
+      
+      <div class="form-group">
+        <label>Nome do Estilo</label>
+        <input type="text" id="styleName" placeholder="Ex: Fala Normal">
+      </div>
+      
+      <div class="form-group">
+        <label>Fonte (Nome exato no Photopea)</label>
+        <input type="text" id="styleFont" placeholder="Ex: ArialMT">
+      </div>
+      
+      <div class="form-group">
+        <label>Tamanho (px)</label>
+        <input type="number" id="styleSize" value="32">
+      </div>
 
-    <hr>
+      <button onclick="saveStyle()" class="btn-main" style="width: 100%;">Salvar Estilo</button>
 
-    <button onclick="toggleStyle()" style="width: 100%;">Fechar</button>
+      <div id="styleList" class="style-list"></div>
+    </div>
   </div>
-</div>
 
-<script src="app.js"></script>
+  <!-- MODAL CONFIG -->
+  <div id="configModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Filtros de Linha</h3>
+        <button onclick="closeConfigModal()" class="btn-icon">✕</button>
+      </div>
+      <p style="font-size: 11px; color: var(--text-dim); margin-bottom: 10px;">
+        Linhas que começam com estes termos serão ignoradas:
+      </p>
+      <textarea id="ignoreInput" style="height: 150px; font-family: monospace;"></textarea>
+      <button onclick="saveConfig()" class="btn-main" style="width: 100%; margin-top: 12px;">Salvar Filtros</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Mensagem</div>
+
+  <script src="app.js"></script>
 </body>
 </html>
