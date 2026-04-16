@@ -9,7 +9,10 @@
 
 <div id="topbar">
   <span>TyperTools</span>
-  <button onclick="toggleConfig()">⚙️</button>
+  <div>
+    <button onclick="toggleStyle()">🎨</button>
+    <button onclick="toggleConfig()">⚙️</button>
+  </div>
 </div>
 
 <textarea id="text" placeholder="Cole o texto aqui..."></textarea>
@@ -19,18 +22,33 @@
   <button onclick="run()">Gerar</button>
 </div>
 
+<select id="styleSelect"></select>
+
 <div id="preview"></div>
 
-<!-- CONFIG MODAL -->
+<!-- CONFIG -->
 <div id="configModal" class="modal hidden">
   <div class="modal-content">
-    <h3>Configurações</h3>
-
-    <p>Ignorar linhas contendo:</p>
+    <h3>Ignorar linhas</h3>
     <textarea id="ignore"></textarea>
-
     <button onclick="saveConfig()">Salvar</button>
     <button onclick="toggleConfig()">Fechar</button>
+  </div>
+</div>
+
+<!-- STYLE -->
+<div id="styleModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>Novo Estilo</h3>
+
+    <input id="styleName" placeholder="Nome do estilo">
+
+    <input id="fontFamily" placeholder="Fonte (ex: ArialMT, WildWords)">
+
+    <input id="fontSize" type="number" value="32">
+
+    <button onclick="saveStyle()">Salvar Estilo</button>
+    <button onclick="toggleStyle()">Fechar</button>
   </div>
 </div>
 
